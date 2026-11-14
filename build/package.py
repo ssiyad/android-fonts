@@ -10,7 +10,7 @@ import sys
 import zipfile
 from pathlib import Path
 
-LICENSES = ["Geist-OFL.txt", "Manjari-OFL.txt", "GeistMonoNerdFont-LICENSE.txt"]
+LICENSES = ["Geist-OFL.txt", "Manjari-OFL.txt", "GeistMonoNerdFont-LICENSE.txt", "Apache-2.0.txt"]
 NOTICE = """\
 Geist (OFL-1.1): https://github.com/vercel/geist-font
 Manjari (OFL-1.1): https://github.com/smc/manjari
@@ -22,7 +22,8 @@ Geist does not have. The Geist Mono font contains glyphs of Droid Sans Mono
 
 
 def main(module: Path, fonts: Path, src: Path, out: Path):
-    used = sorted({line.split()[1] for line in (module / "fonts.list").read_text().splitlines() if line.strip()})
+    lines = (module / "fonts.list").read_text().splitlines()
+    used = sorted({line.split()[1] for line in lines if line.strip() and not line.startswith("#")})
     out.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
         for path in sorted(p for p in module.rglob("*") if p.is_file()):

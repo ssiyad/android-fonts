@@ -11,5 +11,6 @@ run() { uv run -q --project build python -I "$@"; }
 build/fetch.sh
 run build/build.py build/cache/src build/cache/out build/cache/work
 run build/verify.py build/cache/src build/cache/out
-run build/slots.py "$rom" >module/fonts.list
+run build/slots.py "$rom" >module/fonts.list.new
+mv module/fonts.list.new module/fonts.list
 run build/package.py module build/cache/out build/cache/src "../zips/geist-fonts-$version.zip"

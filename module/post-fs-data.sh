@@ -30,6 +30,11 @@ swap() {
 		echo "skip: $1 or $2 is missing"
 		return
 	fi
+	# The mount would land on the target of the link, which has its own line.
+	if [ -L "$2" ]; then
+		echo "skip: $2 is a symlink"
+		return
+	fi
 	relabel "$1" "$2"
 	if mount -o bind "$1" "$2"; then
 		echo "swap: ${1##*/} -> $2"
@@ -40,8 +45,9 @@ swap() {
 
 # Give $1 the SELinux label of $2, or system_file.
 relabel() {
+	# shellcheck disable=SC2012 # toybox has no stat for labels
 	ctx=$(ls -Zd "$2" 2>/dev/null | awk '{print $1}')
-	[ -z "$ctx" ] && ctx=u:object_r:system_file:s0
+	case "$ctx" in u:*) ;; *) ctx=u:object_r:system_file:s0 ;; esac
 	chcon "$ctx" "$1"
 }
 

@@ -1,3 +1,5 @@
+# pyright: reportAttributeAccessIssue=false
+# fontTools tables are dynamic; pyright cannot see their attributes.
 """Build the fonts of the module from build/cache/src.
 
 Usage: build.py SRC_DIR OUT_DIR WORK_DIR
@@ -9,7 +11,7 @@ Geist-<w>.ttf    Static instances of the same, for static font slots.
 GeistMono-400.ttf Geist Mono Nerd Font, with Droid Sans Mono glyphs for the missing
                  characters.
 Manjari-VF.ttf   Manjari Thin, Regular and Bold in one font. The wght axis switches
-                 between them with GSUB rvrn, because the three masters do not
+                 between them with GSUB rclt, because the three masters do not
                  interpolate.
 Manjari-<w>.ttf  The static Manjari fonts.
 """
@@ -25,7 +27,19 @@ from fontTools.varLib import build as build_variable_font
 from fontTools.varLib.featureVars import addFeatureVariations
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # run with python -I
-from fontparts import Workdir, hide, instance, keep_glyph_names, merge, renamed, strip, to_truetype, unicodes
+from fontparts import (
+    Workdir,
+    add_composite,
+    hide,
+    instance,
+    keep_glyph_names,
+    merge,
+    renamed,
+    strip,
+    to_truetype,
+    unicodes,
+)
+from malayalam import decompositions
 
 WEIGHTS = range(100, 1000, 100)
 STATIC_WEIGHTS = (100, 200, 300, 400, 500, 600, 700, 800, 900)
@@ -139,7 +153,9 @@ class MonoBuilder:
         missing = unicodes(TTFont(self.droid)) - unicodes(nerd) - CONTROLS
         droid = strip(TTFont(self.droid), keep=missing, upem=UPEM)
         parts = [self.work.save(nerd, "mono-nerd.ttf"), self.work.save(droid, "mono-droid.ttf")]
-        merge(parts).save(out)
+        font = merge(parts)
+        font["post"].isFixedPitch = 1
+        font.save(out)
 
 
 class ManjariBuilder:
@@ -148,6 +164,9 @@ class ManjariBuilder:
     The switch is in rclt, as the last GSUB lookup. HarfBuzz's Indic shaper finds
     the virama glyph through the cmap, so all shaping must run on the Regular
     glyphs. The Thin and Bold GSUB tables are dropped; their GPOS stays.
+
+    Regular has some conjunct glyphs that Thin or Bold do not have. For those,
+    the master gets a composite glyph of the glyphs that it shapes itself.
     """
 
     # Weight ranges for each master. Android asks for 500 often (medium), so
@@ -169,8 +188,10 @@ class ManjariBuilder:
         thin = self._hidden("Thin", "th.")
         bold = self._hidden("Bold", "bd.")
         font = merge([regular, thin, bold])
-        order = set(font.getGlyphOrder())
         base = [n for n in font.getGlyphOrder() if not n.startswith(("th.", "bd."))]
+        self._add_missing(font, base, "Thin", "th.")
+        self._add_missing(font, base, "Bold", "bd.")
+        order = set(font.getGlyphOrder())
         builder = FontBuilder(font=font)
         builder.setupFvar([("wght", 100, 400, 700, "Weight")], [])
         builder.setupGvar({})
@@ -183,6 +204,14 @@ class ManjariBuilder:
             featureTag="rclt",
         )
         font.save(out)
+
+    def _add_missing(self, font: TTFont, base: list, master: str, prefix: str):
+        order = set(font.getGlyphOrder())
+        missing = {name for name in base if prefix + name not in order}
+        found = decompositions(self.src / "Manjari-Regular.ttf", self.src / f"Manjari-{master}.ttf", missing)
+        for name, run in sorted(found.items()):
+            add_composite(font, prefix + name, [(prefix + glyph, *rest) for glyph, *rest in run])
+        print(f"Manjari {master}: {len(missing)} glyphs missing, {len(found)} composed")
 
     def _hidden(self, name: str, prefix: str) -> Path:
         font = hide(strip(TTFont(self.src / f"Manjari-{name}.ttf")))

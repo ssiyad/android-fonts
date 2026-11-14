@@ -51,6 +51,7 @@ extract() {
 	cp "$cache"/dl/Manjari-* "$src/"
 	cp "$lineage/external/roboto-fonts/font/3.011/Roboto-Regular.ttf" "$src/"
 	cp "$lineage/frameworks/base/data/fonts/DroidSansMono.ttf" "$src/"
+	cp "$lineage/external/roboto-fonts/NOTICE" "$src/Apache-2.0.txt"
 }
 
 main "$@"

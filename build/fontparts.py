@@ -1,4 +1,4 @@
-# pyright: reportAttributeAccessIssue=false, reportArgumentType=false
+# pyright: reportAttributeAccessIssue=false, reportArgumentType=false, reportIndexIssue=false
 # fontTools tables are dynamic; pyright cannot see their attributes.
 """Font operations that the build composes: instance, subset, rename, merge."""
 
@@ -69,6 +69,22 @@ def hide(font: TTFont) -> TTFont:
     return font
 
 
+def add_composite(font: TTFont, name: str, run: list):
+    """Add a glyph made of the glyphs of a shaped run: (name, advance, x offset, y offset)."""
+    pen = TTGlyphPen(font["glyf"])
+    x = 0
+    for glyph, advance, dx, dy in run:
+        pen.addComponent(glyph, (1, 0, 0, 1, x + dx, dy))
+        x += advance
+    order = font.getGlyphOrder() + [name]
+    font.setGlyphOrder(order)
+    glyf = font["glyf"]
+    glyf.glyphOrder = order
+    glyf[name] = pen.glyph()
+    glyf[name].recalcBounds(glyf)
+    font["hmtx"][name] = (x, getattr(glyf[name], "xMin", 0))
+
+
 def renamed(path: Path, prefix: str, out: Path) -> Path:
     """Save a copy of the font with every glyph name prefixed.
 
@@ -122,8 +138,14 @@ def _truetype_maxp(maxp):
     maxp.tableVersion = 0x00010000
     maxp.maxZones = 1
     for field in (
-        "maxTwilightPoints", "maxStorage", "maxFunctionDefs", "maxInstructionDefs",
-        "maxStackElements", "maxSizeOfInstructions", "maxComponentElements", "maxComponentDepth",
+        "maxTwilightPoints",
+        "maxStorage",
+        "maxFunctionDefs",
+        "maxInstructionDefs",
+        "maxStackElements",
+        "maxSizeOfInstructions",
+        "maxComponentElements",
+        "maxComponentDepth",
     ):
         setattr(maxp, field, 0)
 

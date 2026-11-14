@@ -24,10 +24,9 @@ XMLS = {
     "product/etc/fonts_customization.xml": "/product/fonts",
 }
 MONO_FAMILIES = {"monospace", "serif-monospace"}
-# Files that no XML uses. Apps can still open them by path.
+# Files that no XML uses. Apps can still open them by path. (DroidSans*.ttf are
+# symlinks to Roboto-Regular.ttf, so the Roboto mount covers them.)
 UNREFERENCED = {
-    "/system/fonts/DroidSans.ttf": "Geist-400.ttf",
-    "/system/fonts/DroidSans-Bold.ttf": "Geist-700.ttf",
     "/system/fonts/RobotoStatic-Regular.ttf": "Geist-400.ttf",
     "/system/fonts/AndroidClock.ttf": "Geist-400.ttf",
 }
@@ -49,6 +48,9 @@ def main(rom: Path):
         if choice:
             choices[path] = choice
     for path, font in sorted(choices.items()):
+        # A mount on a symlink lands on its target, which has its own line.
+        if (rom / path.lstrip("/")).is_symlink():
+            continue
         print(path, font)
 
 

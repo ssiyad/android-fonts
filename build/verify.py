@@ -15,6 +15,9 @@ import ots
 import uharfbuzz as hb
 from fontTools.ttLib import TTFont
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # run with python -I
+from malayalam import Shaper, syllables
+
 LATIN = "Hamburgefonstiv 0123 fi ‘quotes’ — €"
 FALLBACK = "Ελληνικά Ґґ ǅ ɐ ẞ ₹"
 MALAYALAM = "മലയാളം ക്ഷേത്രം സ്ത്രീ കാർത്തിക"
@@ -28,6 +31,7 @@ def main(src: Path, out: Path):
     checks.geist_static()
     checks.mono()
     checks.manjari()
+    checks.manjari_weights()
     if checks.failures:
         print("\n".join(checks.failures))
         sys.exit(1)
@@ -65,10 +69,15 @@ class Checks:
 
     def geist_static(self):
         for weight in (400, 700):
-            self.same(self.out / f"Geist-{weight}.ttf", {}, self.src / "Geist[wght].ttf", {"wght": weight}, LATIN)
             self.same(
-                self.out / f"Geist-{weight}-Italic.ttf", {},
-                self.src / "Geist-Italic[wght].ttf", {"wght": weight}, LATIN,
+                self.out / f"Geist-{weight}.ttf", {}, self.src / "Geist[wght].ttf", {"wght": weight}, LATIN
+            )
+            self.same(
+                self.out / f"Geist-{weight}-Italic.ttf",
+                {},
+                self.src / "Geist-Italic[wght].ttf",
+                {"wght": weight},
+                LATIN,
             )
 
     def mono(self):
@@ -81,9 +90,25 @@ class Checks:
 
     def manjari(self):
         vf = self.out / "Manjari-VF.ttf"
-        for weight, master, prefix in ((100, "Thin", "th."), (400, "Regular", ""), (500, "Regular", ""),
-                                       (600, "Bold", "bd."), (700, "Bold", "bd.")):
+        for weight, master, prefix in (
+            (100, "Thin", "th."),
+            (400, "Regular", ""),
+            (500, "Regular", ""),
+            (600, "Bold", "bd."),
+            (700, "Bold", "bd."),
+        ):
             self.same(vf, {"wght": weight}, self.src / f"Manjari-{master}.ttf", {}, MALAYALAM, prefix)
+
+    def manjari_weights(self):
+        """Every glyph of every syllable must come from the master of the weight."""
+        vf = self.out / "Manjari-VF.ttf"
+        for weight, prefixes in ((100, ("th.",)), (700, ("bd.",))):
+            shaper = Shaper(vf, {"wght": weight})
+            leaks = [t for t in syllables() if not all(g[0].startswith(prefixes) for g in shaper.glyphs(t))]
+            self.expect(not leaks, f"Manjari-VF wght={weight}: {len(leaks)} syllables leak, e.g. {leaks[:8]}")
+        shaper = Shaper(vf, {"wght": 400})
+        leaks = [t for t in syllables() if any(g[0].startswith(("th.", "bd.")) for g in shaper.glyphs(t))]
+        self.expect(not leaks, f"Manjari-VF wght=400: {len(leaks)} syllables leak, e.g. {leaks[:8]}")
 
     def same(self, font: Path, axes: dict, ref: Path, ref_axes: dict, text: str, prefix=""):
         got = shape(font, axes, text)
@@ -108,7 +133,9 @@ def shape(path: Path, axes: dict, text: str) -> list:
     buf.add_str(text)
     buf.guess_segment_properties()
     hb.shape(font, buf)
-    return [(font.glyph_to_string(i.codepoint), p.x_advance) for i, p in zip(buf.glyph_infos, buf.glyph_positions)]
+    return [
+        (font.glyph_to_string(i.codepoint), p.x_advance) for i, p in zip(buf.glyph_infos, buf.glyph_positions)
+    ]
 
 
 if __name__ == "__main__":
