@@ -1,0 +1,55 @@
+name: Release
+
+# A tag such as v2 builds the module zip and publishes it as a GitHub release.
+# The tag must equal the version in module/module.prop. A manual run builds the
+# zip as an artifact and publishes nothing.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Explicit bash adds pipefail, so a failed build fails the step through the grep.
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: build/uv.lock
+
+      - name: Check the tag against module.prop
+        if: github.ref_type == 'tag'
+        run: |
+          version=$(sed -n 's/^version=//p' module/module.prop)
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME, but module.prop has version=$version"
+            exit 1
+          fi
+
+      - name: Build
+        run: OUT=dist ./build.sh 2>&1 | grep -v 'PfEd NOT subset'
+
+      - name: Checksum
+        working-directory: dist
+        run: sha256sum *.zip | tee SHA256SUMS
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: geist-fonts
+          path: dist/
+
+      - name: Publish the release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --generate-notes

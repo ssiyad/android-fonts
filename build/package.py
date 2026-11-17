@@ -17,7 +17,7 @@ Manjari (OFL-1.1): https://github.com/smc/manjari
 Geist Mono Nerd Font (OFL-1.1, patcher MIT): https://github.com/ryanoasis/nerd-fonts
 The Geist fonts contain glyphs of Roboto (Apache-2.0) for the characters that
 Geist does not have. The Geist Mono font contains glyphs of Droid Sans Mono
-(Apache-2.0) for the same reason. Both come from the LineageOS source tree.
+(Apache-2.0) for the same reason. Both come from the LineageOS 23.2 sources.
 """
 
 

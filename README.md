@@ -12,6 +12,18 @@ system fonts:
 Fonts of the other scripts (CJK, Devanagari, emoji, ...) stay, because Geist
 does not have their characters.
 
+## Install
+
+1. Download `geist-fonts-<version>.zip` from the
+   [releases](https://github.com/ssiyad/android-fonts/releases).
+2. Disable other font modules.
+3. Install the zip in the KernelSU manager and reboot.
+
+`fonts.list` names the font files of LineageOS 23.2 on the Nothing Phone (4a).
+On another ROM, the module only replaces the files that exist; to cover all
+fonts, build the module with that ROM (see Build). The log is
+`/data/local/tmp/geist-fonts.log`.
+
 ## How it works
 
 - `post-fs-data.sh` bind-mounts each font in `fonts/` over a system font. The
@@ -54,15 +66,23 @@ does not have their characters.
 
 ## Build
 
-Needs `uv`, `curl`, `unzip` and a built LineageOS tree (`LINEAGE`, default
-`~/android/lineage`).
+Needs `uv`, `curl` and `unzip`.
 
 ```sh
 ./build.sh
 ```
 
-This writes `../zips/geist-fonts-<version>.zip`. `build/verify.py` shapes test
-text with HarfBuzz and compares each built font with its source font.
+This writes `../zips/geist-fonts-<version>.zip` (set `OUT` for another
+directory). `build/verify.py` shapes test text with HarfBuzz and compares each
+built font with its source font. If a built LineageOS tree is at `LINEAGE`
+(default `~/android/lineage`), `build/slots.py` makes `fonts.list` again from
+the font XMLs of the ROM.
+
+## Release
+
+Set `version` and `versionCode` in `module/module.prop`, commit, and push a tag
+with the same version, for example `v2`. The `Release` workflow builds the zip
+and publishes it with its SHA-256 as a GitHub release.
 
 ## Licenses
 
