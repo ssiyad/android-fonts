@@ -6,7 +6,7 @@ system fonts:
 | Fonts | Replacement |
 | --- | --- |
 | Named Latin families: sans-serif, serif, Google Sans, cursive, casual, ... | Geist |
-| Malayalam (`und-Mlym`) | Manjari |
+| Malayalam (`und-Mlym`) | Manjari 2.200 from [SMC](https://smc.org.in/fonts/manjari) |
 | monospace, serif-monospace | Geist Mono Nerd Font |
 
 Fonts of the other scripts (CJK, Devanagari, emoji, ...) stay, because Geist

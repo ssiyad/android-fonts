@@ -13,7 +13,7 @@ from pathlib import Path
 LICENSES = ["Geist-OFL.txt", "Manjari-OFL.txt", "GeistMonoNerdFont-LICENSE.txt", "Apache-2.0.txt"]
 NOTICE = """\
 Geist (OFL-1.1): https://github.com/vercel/geist-font
-Manjari (OFL-1.1): https://github.com/smc/manjari
+Manjari 2.200 (OFL-1.1): https://smc.org.in/fonts/manjari
 Geist Mono Nerd Font (OFL-1.1, patcher MIT): https://github.com/ryanoasis/nerd-fonts
 The Geist fonts contain glyphs of Roboto (Apache-2.0) for the characters that
 Geist does not have. The Geist Mono font contains glyphs of Droid Sans Mono
