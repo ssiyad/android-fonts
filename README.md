@@ -19,6 +19,13 @@ does not have their characters.
 2. Disable other font modules.
 3. Install the zip in the KernelSU manager and reboot.
 
+Apps that unmount modules do not get the fonts. In the KernelSU manager, turn
+off "Umount modules by default" in Settings, and turn on "Umount modules" only
+in the App Profile of apps that must not see root (banking apps, for example).
+Then force-stop the apps that are open. If an app unmounts modules, it shows
+only the fonts that zygote opened before the unmount (for example Geist for
+sans-serif), and the original fonts for the rest (for example Malayalam).
+
 `fonts.list` names the font files of LineageOS 23.2 on the Nothing Phone (4a).
 On another ROM, the module only replaces the files that exist; to cover all
 fonts, build the module with that ROM (see Build). The log is
