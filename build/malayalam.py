@@ -12,6 +12,10 @@ CONSONANTS = [chr(c) for c in range(0x0D15, 0x0D3A)]
 VOWEL_SIGNS = ["", "ാ", "ി", "ീ", "ു", "ൂ", "ൃ", "െ", "േ", "ൈ"]
 VIRAMA = "്"
 
+# Manjari is drawn smaller than Geist. Noto Sans Malayalam is 1.064 times as tall
+# as the Roboto x-height; at 1.13, Manjari keeps that ratio to the Geist x-height.
+SCALE = 1.13
+
 
 def syllables():
     """Yield consonant clusters of one, two and three consonants, with a vowel sign."""

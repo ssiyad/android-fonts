@@ -1,6 +1,6 @@
 id=geist-fonts
 name=Geist Fonts
-version=v2
-versionCode=2
+version=v3
+versionCode=3
 author=ssiyad
 description=Geist for every Latin font (sans, serif, Google Sans), Manjari for Malayalam, Geist Mono Nerd Font for monospace. Bind mounts only; disables itself after a failed boot.

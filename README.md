@@ -53,7 +53,9 @@ fonts, build the module with that ROM (see Build). The log is
   both switch to the italic glyphs.
 - `GeistMono-400.ttf`: Geist Mono Nerd Font, with Droid Sans Mono glyphs for
   the missing characters.
-- `Manjari-VF.ttf`: Manjari Thin, Regular and Bold in one font. The masters do
+- `Manjari-VF.ttf`: Manjari Thin, Regular and Bold in one font, 1.13 times
+  the size of the original. Then the Malayalam letters have the same size next
+  to Geist as Noto Sans Malayalam next to Roboto. The masters do
   not interpolate, so the `wght` axis selects one of them: 250 and below Thin,
   550 and above Bold. The switch is the last GSUB lookup (`rclt`), because
   HarfBuzz's Indic shaper must shape the Regular glyphs. Six Regular conjuncts

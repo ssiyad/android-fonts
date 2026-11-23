@@ -58,6 +58,13 @@ def strip(font: TTFont, keep=None, upem=None) -> TTFont:
     return font
 
 
+def enlarge(font: TTFont, factor: float):
+    """Scale outlines, metrics and positioning by factor, and keep the UPEM."""
+    upem = font["head"].unitsPerEm
+    scale_upem(font, round(upem * factor))
+    font["head"].unitsPerEm = upem
+
+
 def unicodes(font: TTFont) -> set:
     return set(font.getBestCmap() or {})
 

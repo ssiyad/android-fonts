@@ -16,7 +16,7 @@ import uharfbuzz as hb
 from fontTools.ttLib import TTFont
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # run with python -I
-from malayalam import Shaper, syllables
+from malayalam import SCALE, Shaper, syllables
 
 LATIN = "Hamburgefonstiv 0123 fi ‘quotes’ — €"
 FALLBACK = "Ελληνικά Ґґ ǅ ɐ ẞ ₹"
@@ -97,7 +97,7 @@ class Checks:
             (600, "Bold", "bd."),
             (700, "Bold", "bd."),
         ):
-            self.same(vf, {"wght": weight}, self.src / f"Manjari-{master}.ttf", {}, MALAYALAM, prefix)
+            self.same(vf, {"wght": weight}, self.src / f"Manjari-{master}.ttf", {}, MALAYALAM, prefix, SCALE)
 
     def manjari_weights(self):
         """Every glyph of every syllable must come from the master of the weight."""
@@ -110,9 +110,9 @@ class Checks:
         leaks = [t for t in syllables() if any(g[0].startswith(("th.", "bd.")) for g in shaper.glyphs(t))]
         self.expect(not leaks, f"Manjari-VF wght=400: {len(leaks)} syllables leak, e.g. {leaks[:8]}")
 
-    def same(self, font: Path, axes: dict, ref: Path, ref_axes: dict, text: str, prefix=""):
+    def same(self, font: Path, axes: dict, ref: Path, ref_axes: dict, text: str, prefix="", scale=1.0):
         got = shape(font, axes, text)
-        want = [(prefix + n, a) for n, a in shape(ref, ref_axes, text)]
+        want = [(prefix + n, round(a * scale)) for n, a in shape(ref, ref_axes, text)]
         # HVAR deltas can round an advance by 1 unit.
         ok = len(got) == len(want) and all(g[0] == w[0] and abs(g[1] - w[1]) <= 1 for g, w in zip(got, want))
         self.expect(ok, f"{font.name} {axes} differs from {ref.name} {ref_axes}:\n  {got}\n  {want}")

@@ -30,6 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))  # run with python -I
 from fontparts import (
     Workdir,
     add_composite,
+    enlarge,
     hide,
     instance,
     keep_glyph_names,
@@ -39,7 +40,7 @@ from fontparts import (
     to_truetype,
     unicodes,
 )
-from malayalam import decompositions
+from malayalam import SCALE, decompositions
 
 WEIGHTS = range(100, 1000, 100)
 STATIC_WEIGHTS = (100, 200, 300, 400, 500, 600, 700, 800, 900)
@@ -203,6 +204,7 @@ class ManjariBuilder:
             ],
             featureTag="rclt",
         )
+        enlarge(font, SCALE)
         font.save(out)
 
     def _add_missing(self, font: TTFont, base: list, master: str, prefix: str):
